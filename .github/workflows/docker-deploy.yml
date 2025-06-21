@@ -3,34 +3,35 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master
+      - master  # ou main selon ton repo
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Deploy code to EC2
-      uses: appleboy/scp-action@v0.1.5
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ec2-user
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "."
-        target: "~/simulateur-healthtrack"
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "~/simulateur-healthtrack"
+          rm: true
 
-    - name: Restart Docker container on EC2
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ec2-user
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd simulateur-healthtrack
-          docker stop simulateur || true
-          docker rm simulateur || true
-          docker build -t simulateur .
-          docker run -d --name simulateur simulateur
+      - name: Connect and deploy container
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/simulateur-healthtrack
+            docker stop simulateur || true
+            docker rm simulateur || true
+            docker build -t simulateur-healthtrack .
+            docker run -d --name simulateur simulateur-healthtrack
