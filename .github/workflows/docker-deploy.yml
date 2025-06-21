@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master  # ou main selon ton repo
+      - master
 
 jobs:
   deploy:
@@ -34,4 +34,6 @@ jobs:
             docker stop simulateur || true
             docker rm simulateur || true
             docker build -t simulateur-healthtrack .
-            docker run -d --name simulateur simulateur-healthtrack
+            docker run -d --rm --name simulateur simulateur-healthtrack
+
+
