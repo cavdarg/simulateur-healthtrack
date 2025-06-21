@@ -1,3 +1,4 @@
+# simulateur.py
 import boto3, json, random, time
 from datetime import datetime
 
@@ -20,12 +21,14 @@ def generate():
         "glucose_level": random.randint(70, 200)
     }
 
-while True:
-    data = generate()
-    print("Sending:", data)
-    kinesis.put_record(
-        StreamName=stream_name,
-        Data=json.dumps(data),
-        PartitionKey=data["patient_id"]
-    )
-    time.sleep(60)
+if __name__ == "__main__":
+    while True:
+        data = generate()
+        print("Sending:", data)
+        kinesis.put_record(
+            StreamName=stream_name,
+            Data=json.dumps(data),
+            PartitionKey=data["patient_id"]
+        )
+        time.sleep(60)
+
