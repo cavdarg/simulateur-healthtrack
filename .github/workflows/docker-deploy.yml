@@ -1,0 +1,35 @@
+name: CI/CD – Build & Deploy to EC2
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Deploy code to EC2
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "~/simulateur-docker"
+
+      - name: Restart Docker container on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd simulateur-docker
+            docker stop simulateur || true
+            docker rm simulateur || true
+            docker build -t simulateur-healthtrack .
+            docker run -d --network=host --name simulateur simulateur-healthtrack
